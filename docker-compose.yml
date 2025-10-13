@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: solblog
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./db/CREATE_TABLE.sql:/docker-entrypoint-initdb.d/CREATE_TABLE.sql:ro
+      - ./db/INSERT_INTO.sql:/docker-entrypoint-initdb.d/INSERT_INTO.sql:ro
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: runner
+    env_file:
+      - ./backend/.env     # optional: put DB_* and other secrets here
+    environment:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USERNAME: admin
+      DB_PASSWORD: admin
+      DB_DATABASE: solblog
+      PORT: 3000
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    depends_on:
+      - backend
+    ports:
+      # Map host 4200 to container nginx:80 for convenience (change if desired)
+      - "4200:80"
+    # Mount the source for dev — will override the built image content.
+    # For a pure containerized production build, remove the volumes section.
+    volumes:
+      - ./frontend:/app:cached
+    restart: unless-stopped
+
+volumes:
+  db_data:
