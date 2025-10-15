@@ -5,7 +5,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { jwtConstants } from '../models/constants/constants';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -18,7 +17,7 @@ export class AuthGuard implements CanActivate {
     if (!token) throw new UnauthorizedException('Usuário não logado');
 
     try {
-      const payload = await this.jwtService.verifyAsync( token, { secret: jwtConstants.secret } )
+      const payload = await this.jwtService.verifyAsync( token, { secret: process.env.JWT_SECRET_KEY } )
       request['user'] = payload;
     }
     catch (error) {
