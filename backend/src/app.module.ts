@@ -3,6 +3,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DevtoolsModule } from '@nestjs/devtools-integration';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { Post } from './features/posts/entities/post.entity';
+import { PostsModule } from './features/posts/posts.module';
+import { User } from './features/users/entities/user.entity';
+import { UsersModule } from './features/users/users.module';
+import { CommonModule } from './shared/modules/common.module';
 
 
 @Module({
@@ -29,14 +34,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_DATABASE'),
 
-        // TODO: Estudar o porquê deste trecho não funcionar corretamente
-        // entities: [join(process.cwd(), 'dist/**/*.entity.ts')],
-        entities: [  ],
+        entities: [ User, Post ],
       })
     }),
 
     // Módulos de aplicação
-    // [...]
+    CommonModule,
+    PostsModule,
+    UsersModule,
   ]
 })
 export class AppModule {  }

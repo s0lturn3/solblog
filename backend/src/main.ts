@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { ValidationPipe } from '@nestjs/common';
+import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
@@ -13,7 +13,19 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ResponseInterceptor());
   
   // Aplica validação global para caso parâmetros obrigatórios não sejam informados joga '400 - Bad Request'
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
+    exceptionFactory: (errors) => {
+      return new BadRequestException(
+        errors.map((err) => ({
+          field: err.property,
+          errors: Object.values(err.constraints || {}),
+        })),
+      );
+    },
+  }));
 
   // Configuração do Swagger
   const config = new DocumentBuilder()
