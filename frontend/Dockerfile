@@ -6,16 +6,15 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Install dependencies (use package-lock / npm ci for deterministic installs)
-COPY package*.json ./
-RUN npm ci
-
 # Copy source and build
 COPY . .
 
+# Install dependencies (use package-lock / npm ci for deterministic installs)
+# COPY package*.json ./
+RUN npm i
+
 # Use the Angular CLI build script. Adjust flags if you use a different script name.
 RUN npm run build -- --configuration=production
-
 
 ### stage 2: runtime (nginx) ###
 FROM nginx:stable-alpine AS runtime
@@ -24,7 +23,7 @@ FROM nginx:stable-alpine AS runtime
 RUN rm -rf /usr/share/nginx/html/*
 
 # Copy built files. This uses a wildcard to copy the project folder inside dist.
-COPY --from=build /app/dist/* /usr/share/nginx/html/
+COPY --from=build /app/dist/solblog/browser /usr/share/nginx/html
 
 # Optional: copy a custom nginx.conf if you need SPA pushState routing.
 # COPY nginx.conf /etc/nginx/conf.d/default.conf

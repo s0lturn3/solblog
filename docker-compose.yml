@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  db:
+  solblog-db:
     image: postgres:16
     environment:
       POSTGRES_USER: admin
@@ -15,7 +15,7 @@ services:
       - ./db/INSERT_INTO.sql:/docker-entrypoint-initdb.d/INSERT_INTO.sql:ro
     restart: unless-stopped
 
-  backend:
+  solblog-backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -30,17 +30,17 @@ services:
       DB_DATABASE: solblog
       PORT: 3000
     depends_on:
-      - db
+      - solblog-db
     ports:
       - "3000:3000"
     restart: unless-stopped
 
-  frontend:
+  solblog-frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     depends_on:
-      - backend
+      - solblog-backend
     ports:
       # Map host 4200 to container nginx:80 for convenience (change if desired)
       - "4200:80"

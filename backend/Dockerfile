@@ -1,49 +1,29 @@
-# backend/Dockerfile
-# Multi-stage build for NestJS (or Node) application
+# Start your image with a node base image
+FROM node:20-alpine AS runner
 
-### stage: deps (production deps) ###
-FROM node:20-alpine AS deps
-
+# The /app directory should act as the main application directory
 WORKDIR /app
-COPY package*.json ./
-
-# Install only production deps for final image
-RUN npm ci --omit=dev
-
-
-### stage: build (install dev deps, compile) ###
-FROM node:20-alpine AS build
-
-WORKDIR /app
-COPY package*.json ./
 
 # Instala o Nest globalmente no container
 RUN npm install -g @nestjs/cli
 
-RUN npm ci
+# Copy the app package and package-lock.json file
+COPY package*.json ./
+
+# Install node packages, install serve, build the app, and remove dependencies at the end
+RUN npm install
 
 # Preserve node_modules ao bind‑muntar o restante
 VOLUME [ "/app/node_modules" ]
 
+# Copy local directories to the current local directory of our docker image (/app)
 COPY . .
 
-# Build TypeScript to dist (assumes "npm run build" exists and creates /dist)
+# Build the application
 RUN npm run build
 
-
-### stage: runner ###
-FROM node:20-alpine AS runner
-
-WORKDIR /app
-ENV NODE_ENV=production
-
-# Copy production node_modules and built artifacts
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=build /app/dist ./dist
-COPY package*.json ./
-
-# Expose the default NestJS port (adjust if your app uses another)
+# Expose the application port
 EXPOSE 3000
 
-# Run the compiled app (adjust path if different)
+# Start the app using serve command
 CMD [ "npm", "run", "start:dev" ]
