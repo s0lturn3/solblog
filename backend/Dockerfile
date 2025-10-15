@@ -1,5 +1,5 @@
 # Start your image with a node base image
-FROM node:20-alpine AS runner
+FROM node:20-alpine
 
 # The /app directory should act as the main application directory
 WORKDIR /app

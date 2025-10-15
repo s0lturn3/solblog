@@ -19,7 +19,6 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-      target: runner
     env_file:
       - ./backend/.env     # optional: put DB_* and other secrets here
     environment:
