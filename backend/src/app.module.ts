@@ -1,11 +1,8 @@
-/* eslint-disable prettier/prettier */
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DevtoolsModule } from '@nestjs/devtools-integration';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
-import { jwtConstants } from './shared/models/constants/constants';
 
 
 @Module({
@@ -16,7 +13,7 @@ import { jwtConstants } from './shared/models/constants/constants';
 
     JwtModule.register({
       global: true,
-      secret: jwtConstants.secret,
+      secret: process.env.JWT_SECRET_KEY,
       signOptions: { expiresIn: `${(60 * 60)}s` },
     }),
 

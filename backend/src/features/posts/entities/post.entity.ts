@@ -1,4 +1,4 @@
-/* eslint-disable prettier/prettier */
+/* eslint-disable / */
 import { Entity } from "typeorm";
 
 @Entity('Post')
