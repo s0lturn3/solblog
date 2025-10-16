@@ -7,7 +7,9 @@ import { AppModule } from './app.module';
 import { ResponseInterceptor } from './shared/interceptors/response.interceptor';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    snapshot: true
+  });
 
   // Aplica nosso interceptor para padronizar a estrutura de retorno
   app.useGlobalInterceptors(new ResponseInterceptor());
@@ -60,7 +62,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document); // Rota onde o Swagger será acessível
   // if (process.env.NODE_ENV !== 'production') SwaggerModule.setup('api', app, document); // Rota onde o Swagger será acessível
   
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }
 
 bootstrap();

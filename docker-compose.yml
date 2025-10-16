@@ -2,7 +2,8 @@ version: '3.8'
 
 services:
   solblog-db:
-    image: postgres:16
+    image: postgres:16-alpine
+    container_name: solblog-db
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
@@ -13,28 +14,35 @@ services:
       - db_data:/var/lib/postgresql/data
       - ./db/CREATE_TABLE.sql:/docker-entrypoint-initdb.d/CREATE_TABLE.sql:ro
       - ./db/INSERT_INTO.sql:/docker-entrypoint-initdb.d/INSERT_INTO.sql:ro
-    restart: unless-stopped
+    # restart: unless-stopped
 
   solblog-backend:
+    container_name: solblog-backend
     build:
       context: ./backend
       dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - solblog-db
     env_file:
       - ./backend/.env     # optional: put DB_* and other secrets here
     environment:
-      DB_HOST: localhost
+      DB_HOST: solblog-db
       DB_PORT: 5432
       DB_USERNAME: admin
       DB_PASSWORD: admin
       DB_DATABASE: solblog
       PORT: 3000
-    depends_on:
-      - solblog-db
-    ports:
-      - "3000:3000"
-    restart: unless-stopped
+    volumes:
+      - ./backend:/app:cached
+    working_dir: /app
+    command: npm run start:dev
+
+    # restart: unless-stopped
 
   solblog-frontend:
+    container_name: solblog-frontend
     build:
       context: ./frontend
       dockerfile: Dockerfile

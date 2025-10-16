@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post } from '@nestjs/common';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -34,6 +35,12 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Lê o registro de um usuário.' })
+  @ApiResponse({ status: 200, description: 'Usuário encontrado.', type: User })
+  @ApiResponse({ status: 400, description: 'Ocorreu um erro com a requisição. Verifique os parâmetros.' })
+  @ApiResponse({ status: 404, description: 'O usuário desejado não foi encontrado.' })
+  @ApiResponse({ status: 500, description: 'Ocorreu um erro interno de servidor.' })
   @Get(':id')
   findOne(@Param('id') id: string): Promise<User> {
     return this.usersService.getUser(id);
