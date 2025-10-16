@@ -26,4 +26,4 @@ RUN npm run build
 EXPOSE 3000
 
 # Start the app using serve command
-CMD [ "npm", "run", "start:dev" ]
+CMD [ "npm", "run", "start:prod" ]
