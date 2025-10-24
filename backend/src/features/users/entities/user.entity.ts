@@ -22,7 +22,6 @@ export class User {
   @IsNotEmpty()
   email: string;
 
-  // Usa '{ select: false }' — isso garante que o TypeORM não vai trazer esta coluna a não ser que seja especificada explicitamente
   @Column({ select: false })
   @ApiProperty()
   @IsString()

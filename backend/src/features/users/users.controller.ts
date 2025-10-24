@@ -25,63 +25,62 @@ export class UsersController {
   constructor( private readonly usersService: UsersService ) {}
 
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Cria um novo registro de usuário no sistema.' })
-  @ApiResponse({ status: 201, description: 'Usuário criado com sucesso.', type: User })
-  @ApiResponse({ status: 400, description: 'Ocorreu um erro com a requisição. Verifique os parâmetros.' })
-  @ApiResponse({ status: 500, description: 'Ocorreu um erro interno de servidor.' })
+  @ApiOperation({ summary: 'Creates a new user record in the system.' })
+  @ApiResponse({ status: 201, description: 'User created successfully.', type: User })
+  @ApiResponse({ status: 400, description: 'Request error occurred. Check parameters.' })
+  @ApiResponse({ status: 500, description: 'Internal server error occurred.' })
   @Post()
   create(@Body() record: CreateUserDto): Promise<User> {
     return this.usersService.create(record);
   }
 
-  // @Roles(UserRole.ADMINISTRATOR)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Busca a lista de usuários.' })
-  @ApiResponse({ status: 200, description: 'Usuários encontrados.', type: User })
-  @ApiResponse({ status: 400, description: 'Ocorreu um erro com a requisição. Verifique os parâmetros.' })
-  @ApiResponse({ status: 404, description: 'O usuário desejado não foi encontrado.' })
-  @ApiResponse({ status: 500, description: 'Ocorreu um erro interno de servidor.' })
+  @ApiOperation({ summary: 'Retrieves the list of users.' })
+  @ApiResponse({ status: 200, description: 'Users found.', type: User })
+  @ApiResponse({ status: 400, description: 'Request error occurred. Check parameters.' })
+  @ApiResponse({ status: 404, description: 'Desired user was not found.' })
+  @ApiResponse({ status: 500, description: 'Internal server error occurred.' })
   @Get()
   findAll(): Promise<User[]> {
     return this.usersService.findAll();
   }
 
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Lê o registro de um usuário.' })
-  @ApiResponse({ status: 200, description: 'Usuário encontrado.', type: User })
-  @ApiResponse({ status: 400, description: 'Ocorreu um erro com a requisição. Verifique os parâmetros.' })
-  @ApiResponse({ status: 404, description: 'O usuário desejado não foi encontrado.' })
-  @ApiResponse({ status: 500, description: 'Ocorreu um erro interno de servidor.' })
+  @ApiOperation({ summary: 'Reads a user record.' })
+  @ApiResponse({ status: 200, description: 'User found.', type: User })
+  @ApiResponse({ status: 400, description: 'Request error occurred. Check parameters.' })
+  @ApiResponse({ status: 404, description: 'Desired user was not found.' })
+  @ApiResponse({ status: 500, description: 'Internal server error occurred.' })
   @Get(':id')
   findOne(@Param('id') id: string): Promise<User> {
     return this.usersService.getUser(id);
   }
 
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Atualiza o registro de um usuário.' })
-  @ApiResponse({ status: 204, description: 'Usuário atualizado com sucesso.', type: User })
-  @ApiResponse({ status: 400, description: 'Ocorreu um erro com a requisição. Verifique os parâmetros.' })
-  @ApiResponse({ status: 500, description: 'Ocorreu um erro interno de servidor.' })
+  @ApiOperation({ summary: 'Updates a user record.' })
+  @ApiResponse({ status: 204, description: 'User updated successfully.', type: User })
+  @ApiResponse({ status: 400, description: 'Request error occurred. Check parameters.' })
+  @ApiResponse({ status: 500, description: 'Internal server error occurred.' })
   @Patch(':id')
   update(@Param('id') id: string, @Body() record: UpdateUserDto) {
     return this.usersService.update(id, record);
   }
 
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Atualiza a senha de um usuário.' })
-  @ApiResponse({ status: 400, description: 'Ocorreu um erro com a requisição. Verifique os parâmetros.' })
-  @ApiResponse({ status: 500, description: 'Ocorreu um erro interno de servidor.' })
+  @ApiOperation({ summary: 'Updates a user password.' })
+  @ApiResponse({ status: 400, description: 'Request error occurred. Check parameters.' })
+  @ApiResponse({ status: 500, description: 'Internal server error occurred.' })
   @Patch('change-password/:id')
   async changePassword(@Param('id') id: string, @Body() changePasswordDto: ChangePasswordDto): Promise<{ message: string }> {    
     await this.usersService.changePassword(id, changePasswordDto);
-    return { message: 'Senha alterada com sucesso.' };
+    return { message: 'Password changed successfully.' };
   }
   
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Remove o registro de um usuário.' })
-  @ApiResponse({ status: 204, description: 'Usuário removido com sucesso.', type: Number })
-  @ApiResponse({ status: 400, description: 'Ocorreu um erro com a requisição. Verifique os parâmetros.' })
-  @ApiResponse({ status: 500, description: 'Ocorreu um erro interno de servidor.' })
+  @ApiOperation({ summary: 'Removes a user record.' })
+  @ApiResponse({ status: 204, description: 'User removed successfully.', type: Number })
+  @ApiResponse({ status: 400, description: 'Request error occurred. Check parameters.' })
+  @ApiResponse({ status: 500, description: 'Internal server error occurred.' })
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.delete(id);

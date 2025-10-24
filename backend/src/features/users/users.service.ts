@@ -8,20 +8,20 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 
 /**
- * Serviço responsável por gerenciar operações relacionadas à entidade Campanha.
+ * Service responsible for managing operations related to the User entity.
  * 
- * Fornece métodos para CRUD (criação, leitura, atualização e exclusão) de campanhas,
- * incluindo busca paginada, busca por ID, criação, atualização e remoção (soft delete).
+ * Provides methods for CRUD operations (create, read, update and delete) of users,
+ * including paginated search, search by ID, creation, update and removal (soft delete).
  * 
  * @remarks
- * Utiliza o repositório do TypeORM para interagir com a base de dados.
+ * Uses TypeORM repository to interact with the database.
 */
 @Injectable()
 export class UsersService {
 
   /**
-   * Cria uma instância do PostsService.
-   * @param _postRepo Repositório do TypeORM para a entidade Post.
+   * Creates an instance of UsersService.
+   * @param _userRepo TypeORM repository for the User entity.
   */
   constructor(
     @InjectRepository(User)
@@ -32,21 +32,21 @@ export class UsersService {
   // #region CREATE
 
   /**
-   * Cria um registro novo de usuário no banco de dados.
-   * @param createUserDto Dados para criação do usuário
-   */
+   * Creates a new user record in the database.
+   * @param createUserDto Data for user creation
+  */
   public async create(record: CreateUserDto): Promise<User> {
     let createdUser: User;
 
     try {
       const user = this._userRepo.create(record);
-      if (!user) throw new InternalServerErrorException("O Usuário não foi criado.");
+      if (!user) throw new InternalServerErrorException("User was not created.");
 
       createdUser = await this._userRepo.save(user);
       return await this._userRepo.save(createdUser);
     }
     catch (e) {
-      throw new InternalServerErrorException(`Ocorreu um erro.: ${e.message}`)
+      throw new InternalServerErrorException(`An error occurred.: ${e.message}`)
     }
   }
 
@@ -55,8 +55,8 @@ export class UsersService {
   // #region READ
 
   /**
-   * Busca todos os usuários já cadastrados no sistema atualmente.
-   * @returns Lista de usuários já cadastrados no sistema ou uma lista vazia.
+   * Retrieves all users currently registered in the system.
+   * @returns List of users registered in the system or an empty list.
    */
   public async findAll(): Promise<User[]> {
     const users = await this._userRepo.find();
@@ -64,16 +64,16 @@ export class UsersService {
   }
 
   /**
-   * Busca um usuário com base no seu ID
-   * @param id ID do usuário desejado
-   * @returns Registro do usuário, caso encontre
+   * Finds a user based on their ID
+   * @param id ID of the desired user
+   * @returns User record, if found
   */
   public async getUser(id: string): Promise<User> {
     const user = await this._userRepo.findOne({
       where: { id }
     });
 
-    if (!user) throw new NotFoundException('O usuário desejado não foi encontrado.');
+    if (!user) throw new NotFoundException('The requested user was not found.');
     return user;
   }
   
@@ -84,17 +84,14 @@ export class UsersService {
   async update(id: string, record: UpdateUserDto): Promise<User> {
 
     const userToUpdate = await this._userRepo.findOneBy({ id });
-    if (!userToUpdate) throw new NotFoundException('O usuário desejado não existe.');
-
-    console.log('userToUpdate:', userToUpdate);
+    if (!userToUpdate) throw new NotFoundException('The requested user does not exist.');
 
     try {
-      // Faz o merge de dados entre o usuário existente e os novos dados
-      Object.assign(userToUpdate, record);
+      Object.assign(userToUpdate, record);  // Merges data between existing user and new data
       return this._userRepo.save(userToUpdate);
     }
     catch (e) {
-      throw new InternalServerErrorException(`Ocorreu um erro ao atualizar.: ${e.message}`)
+      throw new InternalServerErrorException(`An error occurred while updating: ${e.message}`)
     }
   }
 
@@ -102,32 +99,26 @@ export class UsersService {
   async changePassword(id: string, changePasswordDto: ChangePasswordDto): Promise<void> {
     const { oldPassword, newPassword } = changePasswordDto;
 
-    // 1. Encontrar o usuário
+    // 1. Find the user
     const user = await this._userRepo.createQueryBuilder('users')
-      .addSelect('users.hashed_password') // <-- A SOLUÇÃO: Adiciona a coluna 'hashed_password' que está escondida
+      .addSelect('users.hashed_password')
       .where('users.id = :id', { id: id })
       .getOne();
 
-    if (!user) throw new NotFoundException('Usuário não encontrado.');
+    if (!user) throw new NotFoundException('User not found.');
 
     
-    // Verifique se a nova senha é diferente da antiga
-    if (oldPassword === newPassword) throw new BadRequestException('A nova senha não pode ser igual à senha atual.');
+    // Check if the new password is different from the old one
+    if (oldPassword === newPassword) throw new BadRequestException('The new password cannot be the same as the current password.');
     
-    // 2. Verificar a senha antiga (você precisará de um método para isso, geralmente no seu Entity)
-    // Assumindo que você tem um método 'comparePassword' na sua Entity
+    // 2. Verify old password
     const isPasswordValid = await user.comparePassword(oldPassword);
 
-    // É uma boa prática de segurança retornar um 401 ou 403, sem dar detalhes
-    if (!isPasswordValid) throw new UnauthorizedException('Senha atual inválida.');
+    if (!isPasswordValid) throw new UnauthorizedException('Invalid current password.');
     
-    // 3. Criptografar e salvar a nova senha
-    // A criptografia deve ocorrer automaticamente ao salvar, graças ao TypeORM Hook (Step 4)
+    // 3. Encrypt and save the new password
     user.hashed_password = newPassword; 
     await this._userRepo.save(user);
-    
-    // **Opcional:** Invalide qualquer token JWT existente do usuário após a troca de senha
-    // (Isso requer lógica adicional no seu serviço de Auth)
   }
 
   // #endregion UPDATE
@@ -139,7 +130,7 @@ export class UsersService {
       await this._userRepo.delete(id);
     }
     catch (e) {
-      throw new InternalServerErrorException(`Ocorreu um erro ao excluir.: ${e.message}`)
+      throw new InternalServerErrorException(`An error occurred while deleting: ${e.message}`)
     }
   }
 

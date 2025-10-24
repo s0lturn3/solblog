@@ -11,7 +11,7 @@ export class ChangePasswordDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  @MinLength(8, { message: 'A nova senha deve ter pelo menos 8 caracteres' })
+  @MinLength(8, { message: 'The new password must have at least 8 characters.' })
   newPassword: string;
 
 }

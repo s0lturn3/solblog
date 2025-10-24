@@ -11,10 +11,10 @@ async function bootstrap() {
     snapshot: true
   });
 
-  // Aplica nosso interceptor para padronizar a estrutura de retorno
+  // Apply our interceptor to standardize the return structure
   app.useGlobalInterceptors(new ResponseInterceptor());
   
-  // Aplica validação global para caso parâmetros obrigatórios não sejam informados joga '400 - Bad Request'
+  // Apply global validation so that if required parameters are not provided it throws a 400 - Bad Request
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     forbidNonWhitelisted: true,
