@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -79,17 +80,67 @@ export class UsersService {
   // #endregion READ
 
   // #region UPDATE
-  
-  update(id: string, record: UpdateUserDto) {
-    return `This action updates a #${id} ${record.username} post`;
+
+  async update(id: string, record: UpdateUserDto): Promise<User> {
+
+    const userToUpdate = await this._userRepo.findOneBy({ id });
+    if (!userToUpdate) throw new NotFoundException('O usuário desejado não existe.');
+
+    console.log('userToUpdate:', userToUpdate);
+
+    try {
+      // Faz o merge de dados entre o usuário existente e os novos dados
+      Object.assign(userToUpdate, record);
+      return this._userRepo.save(userToUpdate);
+    }
+    catch (e) {
+      throw new InternalServerErrorException(`Ocorreu um erro ao atualizar.: ${e.message}`)
+    }
+  }
+
+
+  async changePassword(id: string, changePasswordDto: ChangePasswordDto): Promise<void> {
+    const { oldPassword, newPassword } = changePasswordDto;
+
+    // 1. Encontrar o usuário
+    const user = await this._userRepo.createQueryBuilder('users')
+      .addSelect('users.hashed_password') // <-- A SOLUÇÃO: Adiciona a coluna 'hashed_password' que está escondida
+      .where('users.id = :id', { id: id })
+      .getOne();
+
+    if (!user) throw new NotFoundException('Usuário não encontrado.');
+
+    
+    // Verifique se a nova senha é diferente da antiga
+    if (oldPassword === newPassword) throw new BadRequestException('A nova senha não pode ser igual à senha atual.');
+    
+    // 2. Verificar a senha antiga (você precisará de um método para isso, geralmente no seu Entity)
+    // Assumindo que você tem um método 'comparePassword' na sua Entity
+    const isPasswordValid = await user.comparePassword(oldPassword);
+
+    // É uma boa prática de segurança retornar um 401 ou 403, sem dar detalhes
+    if (!isPasswordValid) throw new UnauthorizedException('Senha atual inválida.');
+    
+    // 3. Criptografar e salvar a nova senha
+    // A criptografia deve ocorrer automaticamente ao salvar, graças ao TypeORM Hook (Step 4)
+    user.hashed_password = newPassword; 
+    await this._userRepo.save(user);
+    
+    // **Opcional:** Invalide qualquer token JWT existente do usuário após a troca de senha
+    // (Isso requer lógica adicional no seu serviço de Auth)
   }
 
   // #endregion UPDATE
 
   // #region DELETE
   
-  remove(id: string) {
-    return `This action removes a #${id} user`;
+  public async delete(id: string): Promise<void> {
+    try {
+      await this._userRepo.delete(id);
+    }
+    catch (e) {
+      throw new InternalServerErrorException(`Ocorreu um erro ao excluir.: ${e.message}`)
+    }
   }
 
   // #endregion DELETE
