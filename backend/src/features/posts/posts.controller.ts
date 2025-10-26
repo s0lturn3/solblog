@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { PostStatus } from 'src/shared/models/dtos/post.dto';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -22,6 +22,14 @@ export class PostsController {
   // #endregion ==========> PROPERTIES <==========
 
   constructor( private readonly _postsService: PostsService ) { }
+
+
+  /*
+  TODO: Implement the following endpoints:
+    - /posts/:id/revisions
+    - /posts/:id/comments
+    - /posts/:id/tags
+  */
 
   
   @HttpCode(HttpStatus.CREATED)
@@ -63,25 +71,39 @@ export class PostsController {
 
 
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get one post.' })
-  @Get(':id')
-  findOne(@Param('id') id: number): Promise<PostEntity> {
+  @ApiOperation({ summary: 'Get one post by ID.' })
+  @Get('id/:id')
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<PostEntity> {
     return this._postsService.getPost(id);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get one post by SLUG.' })
+  @Get('slug/:slug')
+  findOneBySlug(@Param('slug') slug: string): Promise<PostEntity> {
+    return this._postsService.getPostBySlug(slug);
   }
 
 
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Update post data.' })
   @Patch(':id')
-  update(@Param('id') id: number, @Body() record: UpdatePostDto): Promise<void> {
+  update(@Param('id', ParseIntPipe) id: number, @Body() record: UpdatePostDto): Promise<void> {
     return this._postsService.update(id, record);
+  }
+
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Publishes a post.' })
+  @Patch(':id/publish')
+  publishPost(@Param('id', ParseIntPipe) id: number): Promise<PostEntity> {
+    return this._postsService.publishPost(id);
   }
 
 
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Remove post.' })
   @Delete(':id')
-  remove(@Param('id') id: number): Promise<void> {
+  remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this._postsService.delete(id);
   }
 

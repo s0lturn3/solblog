@@ -123,6 +123,20 @@ export class PostsService {
     if (!post) throw new NotFoundException('The requested post was not found.');
     return post;
   }
+
+  /**
+   * Finds a post based on their SLUG
+   * @param slug SLUG of the desired post
+   * @returns Post record, if found
+  */
+  async getPostBySlug(slug: string): Promise<PostEntity> {
+    const post = await this._postRepo.findOne({
+      where: { slug: slug }
+    });
+
+    if (!post) throw new NotFoundException('The requested post was not found.');
+    return post;
+  }
   
   // #endregion READ
 
@@ -140,6 +154,26 @@ export class PostsService {
     try {
       Object.assign(postToUpdate, record);  // Merges data between existing post and new data
       await this._postRepo.save(postToUpdate);
+    }
+    catch (e) {
+      throw new InternalServerErrorException(`An error occurred while updating: ${e.message}`)
+    }
+  }
+
+
+  /**
+   * Publishes a post, changing is status and publish date.
+   * @param id ID of the post to publish
+  */
+  async publishPost(id: number): Promise<PostEntity> {
+    const postToPublish = await this._postRepo.findOneBy({ id });
+    if (!postToPublish) throw new NotFoundException('The requested post does not exist.');
+
+    postToPublish.status = PostStatus.PUBLISHED;
+    postToPublish.published_at = new Date();
+
+    try {
+      return await this._postRepo.save(postToPublish);
     }
     catch (e) {
       throw new InternalServerErrorException(`An error occurred while updating: ${e.message}`)
