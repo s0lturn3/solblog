@@ -5,20 +5,22 @@ import { DataSource } from 'typeorm';
 import { PostEntity } from './entities/post.entity';
 
 import { SlugService } from 'src/shared/services/slug.service';
+import { TagEntity } from '../tags/entities/tag.entity';
+import { TagsService } from '../tags/tags.service';
 import { UserEntity } from '../users/entities/user.entity';
-import { UsersModule } from '../users/users.module';
+import { UsersService } from '../users/users.service';
 import { PostsController } from './posts.controller';
 import { PostsService } from './posts.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([PostEntity]),
-    TypeOrmModule.forFeature([UserEntity])
+    TypeOrmModule.forFeature([PostEntity, UserEntity, TagEntity])
   ],
   controllers: [ PostsController ],
   providers: [
     PostsService,
-    UsersModule,
+    UsersService,
+    TagsService,
     SlugService
   ],
 })

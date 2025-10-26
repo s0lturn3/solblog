@@ -3,7 +3,8 @@ import { Injectable, InternalServerErrorException, NotFoundException } from '@ne
 import { InjectRepository } from '@nestjs/typeorm';
 import { PostStatus } from 'src/shared/models/dtos/post.dto';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import { UserEntity } from '../users/entities/user.entity';
+import { TagsService } from '../tags/tags.service';
+import { UsersService } from '../users/users.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostEntity } from './entities/post.entity';
@@ -24,8 +25,8 @@ export class PostsService {
     @InjectRepository(PostEntity)
     private readonly _postRepo: Repository<PostEntity>,
 
-    @InjectRepository(UserEntity)
-    private readonly _userRepo: Repository<UserEntity>,
+    private readonly _usersService: UsersService,
+    private readonly _tagsService: TagsService,
   ) { }
   
 
@@ -36,19 +37,20 @@ export class PostsService {
    * @param record Data for post creation
   */
   async create(record: CreatePostDto): Promise<PostEntity> {
-    let createdPost: PostEntity;
-    
     try {
-      const post = this._postRepo.create(record);
-      if (!post) throw new InternalServerErrorException("Post was not created.");
+      const author = await this._usersService.getAuthor(record.author_id);
+      const tags = await this._tagsService.getOrCreateTags(record.tags ?? []);
 
-      createdPost = await this._postRepo.save(post);
-      return await this._postRepo.save(createdPost);
+      const post = this._postRepo.create({
+        ...record,
+        author,
+        tags,
+      });
+
+      return await this._postRepo.save(post);
     }
     catch (e) {
-      console.error(e.message);
-      
-      throw new InternalServerErrorException(`An error occurred: ${e.message}`)
+      throw new InternalServerErrorException(`Failed to create post: ${e.message}`);
     }
   }
 
@@ -61,16 +63,21 @@ export class PostsService {
    * @param options Optional filters for status, limit and offset
    * @returns List of posts registered in the system or an empty list.
   */
-  async findAll(options?: { status?: PostStatus; limit?: number; offset?: number }): Promise<PostEntity[]> {
+  async findAll(options?: { tags?: string[], status?: PostStatus; limit?: number; offset?: number }): Promise<PostEntity[]> {
     const postQueryBuilder: SelectQueryBuilder<PostEntity> = this._postRepo
-      .createQueryBuilder('post')
-      .leftJoinAndSelect('post.author', 'author');
+      .createQueryBuilder('posts')
+      .leftJoinAndSelect('posts.tags', 'tag')
+      .leftJoinAndSelect('posts.author', 'author');
 
     if (options?.status) {
-      postQueryBuilder.andWhere('post.status = :status', { status: options.status });
+      postQueryBuilder.andWhere('posts.status = :status', { status: options.status });
     }
 
-    postQueryBuilder.orderBy('post.created_at', 'DESC')
+    if (options?.tags?.length) {
+      postQueryBuilder.innerJoin('posts.tags', 'filterTag', 'filterTag.slug IN (:...slugs)', { slugs: options.tags });
+    }
+
+    postQueryBuilder.orderBy('posts.created_at', 'DESC')
       .take(options?.limit ?? 10)
       .skip(options?.offset ?? 0);
     
@@ -87,14 +94,19 @@ export class PostsService {
    * @param options Optional filters for status, limit and offset
    * @returns List of posts belonging to the user or an empty list.
   */
-  async findAllByUser(userId: string, options?: { status?: PostStatus; limit?: number; offset?: number }): Promise<PostEntity[]> {
+  async findAllByUser(userId: string, options?: { tags?: string[], status?: PostStatus; limit?: number; offset?: number }): Promise<PostEntity[]> {
     const postQueryBuilder: SelectQueryBuilder<PostEntity> = this._postRepo
       .createQueryBuilder('post')
+      .leftJoinAndSelect('posts.tags', 'tag')
       .leftJoinAndSelect('post.author', 'author')
       .where('author.id = :userId', { userId });
 
     if (options?.status) {
       postQueryBuilder.andWhere('post.status = :status', { status: options.status });
+    }
+
+    if (options?.tags?.length) {
+      postQueryBuilder.innerJoin('posts.tags', 'filterTag', 'filterTag.slug IN (:...slugs)', { slugs: options.tags });
     }
 
     postQueryBuilder.orderBy('post.created_at', 'DESC')
@@ -150,9 +162,13 @@ export class PostsService {
   async update(id: number, record: UpdatePostDto): Promise<void> {
     const postToUpdate = await this._postRepo.findOneBy({ id });
     if (!postToUpdate) throw new NotFoundException('The requested post does not exist.');
-
+    
     try {
-      Object.assign(postToUpdate, record);  // Merges data between existing post and new data
+      if (record.tags) {
+        postToUpdate.tags = await this._tagsService.getOrCreateTags(record.tags);
+      }
+
+      Object.assign(postToUpdate, record);
       await this._postRepo.save(postToUpdate);
     }
     catch (e) {

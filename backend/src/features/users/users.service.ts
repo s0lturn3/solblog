@@ -169,7 +169,19 @@ export class UsersService {
 
 
   // #region UTILS
-  // [...]
+  
+  /**
+   * Retrieves the author (user) based on their ID.
+   * @param authorId ID of the author to retrieve
+   * @returns User corresponding to the author ID
+  */
+  async getAuthor(authorId: string): Promise<UserEntity> {
+    const author = await this._userRepo.findOne({ where: { id: authorId } });
+    if (!author) throw new NotFoundException(`Author not found for ID ${authorId}`);
+
+    return author;
+  }
+
   // #endregion UTILS
 
 }

@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsBoolean, IsDate, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsArray, IsBoolean, IsDate, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
 import { PostStatus } from "src/shared/models/dtos/post.dto";
 
 export class CreatePostDto {
@@ -10,7 +10,7 @@ export class CreatePostDto {
   @IsNotEmpty()
   title: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   subtitle?: string;
@@ -20,19 +20,20 @@ export class CreatePostDto {
   @IsNotEmpty()
   body_markdown: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   rendered_html?: string;
 
-  @ApiProperty({ enum: PostStatus })
+  @ApiProperty({ enum: PostStatus, default: PostStatus.DRAFT })
   @IsEnum(PostStatus)
   status: PostStatus;
 
-  @ApiProperty({ default: new Date() })
+  @ApiProperty({ required: false, default: new Date() })
   @IsDate()
+  @IsOptional()
   @Type(() => Date)
-  created_at: Date;
+  created_at?: Date;
 
   @ApiProperty({ default: null, required: false })
   @IsOptional()
@@ -48,5 +49,12 @@ export class CreatePostDto {
   @IsUUID()
   @IsNotEmpty()
   author_id: string;
+
+
+  @ApiProperty({ required: false, description: 'Tags associated with the post', type: [ String ] })
+  @IsArray()
+  @IsOptional()
+  @IsString({ each: true })
+  tags?: string[];
 
 }

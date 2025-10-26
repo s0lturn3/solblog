@@ -1,10 +1,11 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsBoolean, IsDate, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
+import { TagEntity } from "src/features/tags/entities/tag.entity";
 import { UserEntity } from "src/features/users/entities/user.entity";
 import { PostStatus } from "src/shared/models/dtos/post.dto";
 import { SlugService } from "src/shared/services/slug.service";
-import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, DataSource, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, DataSource, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('posts')
 export class PostEntity {
@@ -82,6 +83,14 @@ export class PostEntity {
   @ManyToOne(() => UserEntity, (user) => user.posts, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'author_id' })
   author: UserEntity;
+
+  @ManyToMany(() => TagEntity, (tag) => tag.posts, { cascade: true })
+  @JoinTable({
+    name: 'post_tags', // name of the relation table
+    joinColumn: { name: 'post_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'tag_id', referencedColumnName: 'id' },
+  })
+  tags: TagEntity[];
 
 
   // LIFECYCLE HOOKS

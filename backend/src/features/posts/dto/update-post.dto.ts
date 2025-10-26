@@ -1,7 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsDate, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsBoolean, IsDate, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { PostStatus } from 'src/shared/models/dtos/post.dto';
 import { CreatePostDto } from './create-post.dto';
 
@@ -12,7 +12,7 @@ export class UpdatePostDto extends PartialType(CreatePostDto) {
   @IsNotEmpty()
   title: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   subtitle?: string;
@@ -22,12 +22,12 @@ export class UpdatePostDto extends PartialType(CreatePostDto) {
   @IsNotEmpty()
   body_markdown: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   rendered_html?: string;
 
-  @ApiProperty({ enum: PostStatus, default: PostStatus.DRAFT })
+  @ApiProperty({ enum: PostStatus })
   @IsEnum(PostStatus)
   status: PostStatus;
 
@@ -35,9 +35,17 @@ export class UpdatePostDto extends PartialType(CreatePostDto) {
   @IsBoolean()
   is_private: boolean;
 
-  @ApiProperty({ default: new Date() })
+  @ApiProperty({ required: false, default: new Date() })
   @IsDate()
+  @IsOptional()
   @Type(() => Date)
   updated_at: Date;
+
+
+  @ApiProperty({ required: false, description: 'Tags associated with the post', type: [ String ] })
+  @IsArray()
+  @IsOptional()
+  @IsString({ each: true })
+  tags?: string[];
 
 }

@@ -4,6 +4,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PostEntity } from './features/posts/entities/post.entity';
 import { PostsModule } from './features/posts/posts.module';
+import { TagEntity } from './features/tags/entities/tag.entity';
+import { TagsModule } from './features/tags/tags.module';
 import { UserEntity } from './features/users/entities/user.entity';
 import { UsersModule } from './features/users/users.module';
 import { CommonModule } from './shared/modules/common.module';
@@ -31,7 +33,7 @@ import { CommonModule } from './shared/modules/common.module';
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_DATABASE'),
 
-        entities: [ UserEntity, PostEntity ],
+        entities: [ UserEntity, PostEntity, TagEntity ],
       })
     }),
 
@@ -39,6 +41,7 @@ import { CommonModule } from './shared/modules/common.module';
     CommonModule,
     PostsModule,
     UsersModule,
+    TagsModule,
   ]
 })
 export class AppModule {  }
