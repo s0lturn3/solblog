@@ -7,9 +7,7 @@ import { AppModule } from './app.module';
 import { ResponseInterceptor } from './shared/interceptors/response.interceptor';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    snapshot: true
-  });
+  const app = await NestFactory.create(AppModule);
 
   // Apply our interceptor to standardize the return structure
   app.useGlobalInterceptors(new ResponseInterceptor());
