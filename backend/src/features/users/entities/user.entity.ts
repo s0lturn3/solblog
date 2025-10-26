@@ -1,61 +1,64 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ApiProperty } from '@nestjs/swagger';
 import * as bcrypt from 'bcrypt';
+import { Type } from 'class-transformer';
 import { IsDate, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
-import { Post } from "src/features/posts/entities/post.entity";
+import { PostEntity } from "src/features/posts/entities/post.entity";
 import { UserRole } from "src/shared/models/dtos/user.dto";
 import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('users')
-export class User {
+export class UserEntity {
 
-  @ApiProperty()
+  @ApiProperty({ description: 'UUID' })
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ unique: true })
-  @ApiProperty()
+  @ApiProperty({ description: 'E-mail of the user' })
   @IsEmail()
   @IsNotEmpty()
   email: string;
 
   @Column({ select: false })
-  @ApiProperty()
+  @ApiProperty({ description: 'Hashed password of the user' })
   @IsString()
   @MinLength(8)
   @IsNotEmpty()
   hashed_password: string;
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.READER })
-  @ApiProperty()
+  @ApiProperty({ description: 'Role of the user in the system' })
   @IsEnum(UserRole)
   role: UserRole;
 
   @Column({ unique: true })
-  @ApiProperty()
+  @ApiProperty({ description: 'Unique username of the user' })
   @IsString()
   @IsNotEmpty()
   username: string;
 
   @CreateDateColumn({ type: 'timestamp with time zone' })
-  @ApiProperty()
+  @ApiProperty({ description: 'Date and time when the user was created' })
   @IsOptional()
   @IsDate()
+  @Type(() => Date)
   created_at?: Date;
 
   @UpdateDateColumn({ type: 'timestamp with time zone' })
-  @ApiProperty()
+  @ApiProperty({ description: 'Date and time of the last update' })
   @IsOptional()
   @IsDate()
+  @Type(() => Date)
   updated_at?: Date;
 
 
   // RELATIONS
-  @OneToMany(() => Post, (post) => post.author)
-  posts: Post[];
+  @OneToMany(() => PostEntity, (post) => post.author)
+  posts: PostEntity[];
 
 
   // LIFECYCLE HOOKS

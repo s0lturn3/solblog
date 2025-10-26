@@ -1,9 +1,10 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query } from '@nestjs/common';
+import { ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { UserRole } from 'src/shared/models/dtos/user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './entities/user.entity';
+import { UserEntity } from './entities/user.entity';
 import { UsersService } from './users.service';
 
 @Controller('users')
@@ -26,50 +27,43 @@ export class UsersController {
 
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Creates a new user record in the system.' })
-  @ApiResponse({ status: 201, description: 'User created successfully.', type: User })
-  @ApiResponse({ status: 400, description: 'Request error occurred. Check parameters.' })
-  @ApiResponse({ status: 500, description: 'Internal server error occurred.' })
   @Post()
-  create(@Body() record: CreateUserDto): Promise<User> {
+  create(@Body() record: CreateUserDto): Promise<UserEntity> {
     return this.usersService.create(record);
   }
 
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Retrieves the list of users.' })
-  @ApiResponse({ status: 200, description: 'Users found.', type: User })
-  @ApiResponse({ status: 400, description: 'Request error occurred. Check parameters.' })
-  @ApiResponse({ status: 404, description: 'Desired user was not found.' })
-  @ApiResponse({ status: 500, description: 'Internal server error occurred.' })
+  @ApiOperation({ summary: 'Get all users (limit of 10 records if not specified).' })
+  @ApiQuery({ name: 'username', required: false, type: String, description: 'Optional username filter' })
+  @ApiQuery({ name: 'role', required: false, type: String, description: 'Optional role filter (values are the UserRole enum)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Optional limit filter' })
+  @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Optional status filter' })  
   @Get()
-  findAll(): Promise<User[]> {
-    return this.usersService.findAll();
+  findAll(
+    @Query('username') username?: string,
+    @Query('role') role?: UserRole,
+    @Query('limit') limit?: number,
+    @Query('offset') offset?: number,
+  ): Promise<UserEntity[]> {
+    return this.usersService.findAll({ username, role, limit, offset });
   }
 
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Reads a user record.' })
-  @ApiResponse({ status: 200, description: 'User found.', type: User })
-  @ApiResponse({ status: 400, description: 'Request error occurred. Check parameters.' })
-  @ApiResponse({ status: 404, description: 'Desired user was not found.' })
-  @ApiResponse({ status: 500, description: 'Internal server error occurred.' })
+  @ApiOperation({ summary: 'Get one user.' })
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<User> {
+  findOne(@Param('id') id: string): Promise<UserEntity> {
     return this.usersService.getUser(id);
   }
 
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Updates a user record.' })
-  @ApiResponse({ status: 204, description: 'User updated successfully.', type: User })
-  @ApiResponse({ status: 400, description: 'Request error occurred. Check parameters.' })
-  @ApiResponse({ status: 500, description: 'Internal server error occurred.' })
+  @ApiOperation({ summary: 'Update profile or role.' })
   @Patch(':id')
-  update(@Param('id') id: string, @Body() record: UpdateUserDto) {
+  update(@Param('id') id: string, @Body() record: UpdateUserDto): Promise<void> {
     return this.usersService.update(id, record);
   }
 
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Updates a user password.' })
-  @ApiResponse({ status: 400, description: 'Request error occurred. Check parameters.' })
-  @ApiResponse({ status: 500, description: 'Internal server error occurred.' })
+  @ApiOperation({ summary: 'Change user password.' })
   @Patch('change-password/:id')
   async changePassword(@Param('id') id: string, @Body() changePasswordDto: ChangePasswordDto): Promise<{ message: string }> {    
     await this.usersService.changePassword(id, changePasswordDto);
@@ -77,12 +71,9 @@ export class UsersController {
   }
   
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Removes a user record.' })
-  @ApiResponse({ status: 204, description: 'User removed successfully.', type: Number })
-  @ApiResponse({ status: 400, description: 'Request error occurred. Check parameters.' })
-  @ApiResponse({ status: 500, description: 'Internal server error occurred.' })
+  @ApiOperation({ summary: 'Remove user.' })
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: string): Promise<void> {
     return this.usersService.delete(id);
   }
 

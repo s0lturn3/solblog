@@ -3,9 +3,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DevtoolsModule } from '@nestjs/devtools-integration';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Post } from './features/posts/entities/post.entity';
+import { PostEntity } from './features/posts/entities/post.entity';
 import { PostsModule } from './features/posts/posts.module';
-import { User } from './features/users/entities/user.entity';
+import { UserEntity } from './features/users/entities/user.entity';
 import { UsersModule } from './features/users/users.module';
 import { CommonModule } from './shared/modules/common.module';
 
@@ -34,7 +34,7 @@ import { CommonModule } from './shared/modules/common.module';
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_DATABASE'),
 
-        entities: [ User, Post ],
+        entities: [ UserEntity, PostEntity ],
       })
     }),
 

@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { UserRole } from 'src/shared/models/dtos/user.dto';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './entities/user.entity';
+import { UserEntity } from './entities/user.entity';
 
 /**
  * Service responsible for managing operations related to the User entity.
@@ -19,13 +20,9 @@ import { User } from './entities/user.entity';
 @Injectable()
 export class UsersService {
 
-  /**
-   * Creates an instance of UsersService.
-   * @param _userRepo TypeORM repository for the User entity.
-  */
   constructor(
-    @InjectRepository(User)
-    private readonly _userRepo: Repository<User>
+    @InjectRepository(UserEntity)
+    private readonly _userRepo: Repository<UserEntity>
   ) { }
   
   
@@ -33,10 +30,10 @@ export class UsersService {
 
   /**
    * Creates a new user record in the database.
-   * @param createUserDto Data for user creation
+   * @param record Data for user creation
   */
-  public async create(record: CreateUserDto): Promise<User> {
-    let createdUser: User;
+  public async create(record: CreateUserDto): Promise<UserEntity> {
+    let createdUser: UserEntity;
 
     try {
       const user = this._userRepo.create(record);
@@ -46,7 +43,7 @@ export class UsersService {
       return await this._userRepo.save(createdUser);
     }
     catch (e) {
-      throw new InternalServerErrorException(`An error occurred.: ${e.message}`)
+      throw new InternalServerErrorException(`An error occurred: ${e.message}`)
     }
   }
 
@@ -56,19 +53,40 @@ export class UsersService {
 
   /**
    * Retrieves all users currently registered in the system.
+   * @param options Optional filters for role, limit and offset
    * @returns List of users registered in the system or an empty list.
    */
-  public async findAll(): Promise<User[]> {
-    const users = await this._userRepo.find();
-    return users ?? [];
+  public async findAll(options?: { username?: string, role?: UserRole; limit?: number; offset?: number }): Promise<UserEntity[]> {
+    const userQueryBuilder: SelectQueryBuilder<UserEntity> = this._userRepo
+      .createQueryBuilder('users');
+    
+    if (options?.username) {
+      userQueryBuilder.andWhere('users.username LIKE :username', { username: `%${options.username}%` });
+    }
+
+    if (options?.role) {
+      userQueryBuilder.andWhere('users.role = :role', { role: options.role });
+    }
+
+    userQueryBuilder.orderBy('users.username', 'ASC')
+      .take(options?.limit ?? 10)
+      .skip(options?.offset ?? 0);
+
+    try {
+      return await userQueryBuilder.getMany();
+    }
+    catch (e) {
+      throw new InternalServerErrorException(`An error occurred: ${e.message}`)
+    }
   }
+
 
   /**
    * Finds a user based on their ID
    * @param id ID of the desired user
    * @returns User record, if found
   */
-  public async getUser(id: string): Promise<User> {
+  public async getUser(id: string): Promise<UserEntity> {
     const user = await this._userRepo.findOne({
       where: { id }
     });
@@ -81,14 +99,18 @@ export class UsersService {
 
   // #region UPDATE
 
-  async update(id: string, record: UpdateUserDto): Promise<User> {
-
+  /**
+   * Updates a user record in the database.
+   * @param id ID of the desired user
+   * @param record User record with updated values
+  */
+  async update(id: string, record: UpdateUserDto): Promise<void> {
     const userToUpdate = await this._userRepo.findOneBy({ id });
     if (!userToUpdate) throw new NotFoundException('The requested user does not exist.');
 
     try {
       Object.assign(userToUpdate, record);  // Merges data between existing user and new data
-      return this._userRepo.save(userToUpdate);
+      await this._userRepo.save(userToUpdate);
     }
     catch (e) {
       throw new InternalServerErrorException(`An error occurred while updating: ${e.message}`)
@@ -96,6 +118,11 @@ export class UsersService {
   }
 
 
+  /**
+   * Updates a user password in the database.
+   * @param id ID of the user to change password
+   * @param changePasswordDto Old and new password data
+   */
   async changePassword(id: string, changePasswordDto: ChangePasswordDto): Promise<void> {
     const { oldPassword, newPassword } = changePasswordDto;
 
@@ -125,6 +152,10 @@ export class UsersService {
 
   // #region DELETE
   
+  /**
+   * Deletes a user record from the database based on their ID.
+   * @param id ID of the desired user
+  */
   public async delete(id: string): Promise<void> {
     try {
       await this._userRepo.delete(id);
