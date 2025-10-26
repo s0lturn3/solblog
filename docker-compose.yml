@@ -34,6 +34,7 @@ services:
       DB_PASSWORD: admin
       DB_DATABASE: solblog
       PORT: 3000
+      NODE_ENV: production
     volumes:
       - ./backend:/app:cached
     working_dir: /app
