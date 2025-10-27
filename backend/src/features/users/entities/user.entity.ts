@@ -6,6 +6,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import * as bcrypt from 'bcrypt';
 import { Type } from 'class-transformer';
 import { IsDate, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
+import { CommentEntity } from 'src/features/comments/entities/comment.entity';
 import { PostEntity } from "src/features/posts/entities/post.entity";
 import { UserRole } from "src/shared/models/dtos/user.dto";
 import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
@@ -59,6 +60,9 @@ export class UserEntity {
   // RELATIONS
   @OneToMany(() => PostEntity, (post) => post.author)
   posts: PostEntity[];
+
+  @OneToMany(() => CommentEntity, (comment) => comment.author)
+  comments: CommentEntity[];
 
 
   // LIFECYCLE HOOKS

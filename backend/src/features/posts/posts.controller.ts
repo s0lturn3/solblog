@@ -45,7 +45,7 @@ export class PostsController {
   @ApiQuery({ name: 'tags', required: false, type: String, description: 'Optional tags filter' })
   @ApiQuery({ name: 'status', required: false, type: String, description: 'Optional status filter (values are the PostStatus enum)' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Optional limit filter' })
-  @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Optional status filter' })
+  @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Optional offset filter' })
   @Get()
   findAll(
     @Query('tags') tags?: string,
@@ -63,7 +63,7 @@ export class PostsController {
   @ApiQuery({ name: 'tags', required: false, type: String, description: 'Optional tags filter' })
   @ApiQuery({ name: 'status', required: false, type: String, description: 'Optional status filter (values are the PostStatus enum)' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Optional limit filter' })
-  @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Optional status filter' })
+  @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Optional offset filter' })
   @Get(':userId/posts')
   findAllByUser(
     @Param('userId', new ParseUUIDPipe()) userId: string,

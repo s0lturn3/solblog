@@ -37,7 +37,7 @@ export class UsersController {
   @ApiQuery({ name: 'username', required: false, type: String, description: 'Optional username filter' })
   @ApiQuery({ name: 'role', required: false, type: String, description: 'Optional role filter (values are the UserRole enum)' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Optional limit filter' })
-  @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Optional status filter' })  
+  @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Optional offset filter' })  
   @Get()
   findAll(
     @Query('username') username?: string,

@@ -34,7 +34,7 @@ export class TagsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Gets all tags (limit of 10 records if not specified).' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Optional limit filter' })
-  @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Optional status filter' })
+  @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Optional offset filter' })
   @Get()
   findAll(
     @Query('limit') limit?: number,

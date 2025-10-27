@@ -95,24 +95,25 @@ export class PostsService {
    * @returns List of posts belonging to the user or an empty list.
   */
   async findAllByUser(userId: string, options?: { tags?: string[], status?: PostStatus; limit?: number; offset?: number }): Promise<PostEntity[]> {
+    
     const postQueryBuilder: SelectQueryBuilder<PostEntity> = this._postRepo
-      .createQueryBuilder('post')
+      .createQueryBuilder('posts')
       .leftJoinAndSelect('posts.tags', 'tag')
-      .leftJoinAndSelect('post.author', 'author')
+      .leftJoinAndSelect('posts.author', 'author')
       .where('author.id = :userId', { userId });
-
+    
     if (options?.status) {
-      postQueryBuilder.andWhere('post.status = :status', { status: options.status });
+      postQueryBuilder.andWhere('posts.status = :status', { status: options.status });
     }
 
     if (options?.tags?.length) {
       postQueryBuilder.innerJoin('posts.tags', 'filterTag', 'filterTag.slug IN (:...slugs)', { slugs: options.tags });
     }
-
-    postQueryBuilder.orderBy('post.created_at', 'DESC')
-      .take(options?.limit ?? 10)
-      .skip(options?.offset ?? 0);
-
+    
+    postQueryBuilder.orderBy('posts.created_at', 'DESC')
+    .take(options?.limit ?? 10)
+    .skip(options?.offset ?? 0);
+    
     try {
       return await postQueryBuilder.getMany();
     }

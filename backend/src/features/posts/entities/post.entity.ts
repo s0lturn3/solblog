@@ -1,11 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsBoolean, IsDate, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
+import { CommentEntity } from "src/features/comments/entities/comment.entity";
 import { TagEntity } from "src/features/tags/entities/tag.entity";
 import { UserEntity } from "src/features/users/entities/user.entity";
 import { PostStatus } from "src/shared/models/dtos/post.dto";
 import { SlugService } from "src/shared/services/slug.service";
-import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, DataSource, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, DataSource, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('posts')
 export class PostEntity {
@@ -91,6 +92,9 @@ export class PostEntity {
     inverseJoinColumn: { name: 'tag_id', referencedColumnName: 'id' },
   })
   tags: TagEntity[];
+
+  @OneToMany(() => CommentEntity, (comment) => comment.post)
+  comments: CommentEntity[];
 
 
   // LIFECYCLE HOOKS
